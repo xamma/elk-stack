@@ -1,0 +1,2 @@
+{"level":"info","ts":1689581088.016502,"caller":"app/main.go:57","msg":"Logger initialized"}
+{"level":"info","ts":1689581168.0060344,"caller":"app/main.go:27","msg":"Secret endpoint accessed","remote_address":"172.27.0.1:52546","user_agent":"PostmanRuntime/7.32.3","user":"admin"}

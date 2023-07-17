@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  go-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: go-app:latest
+    container_name: go-app
+    environment:
+     - "USER=admin"
+     - "PASSWORD=supersecretxyz"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./logs:/app/logs
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.0
+    container_name: elasticsearch 
+    # ports:
+    #   - 9200:9200
+    environment:
+      - "discovery.type=single-node"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.15.0
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline.conf:/usr/share/logstash/pipeline/pipeline.conf
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.15.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    # environment:
+    #   - "ELASTICSEARCH_URL=http://elasticsearch:9200"
+    depends_on:
+      - elasticsearch
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.15.0
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers
+      - ./logs:/app/logs
+    command: filebeat -e -strict.perms=false
+    depends_on:
+      - logstash
+
+volumes:
+  esdata:
